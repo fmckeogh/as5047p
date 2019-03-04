@@ -39,13 +39,19 @@ where
     }
 
     pub fn read_register(&mut self, reg: VolatileRegister) -> Result<u16, E> {
-        let mut buf = command_frame(reg.address(), Rw::Read);
+        {
+            let mut buf = command_frame(reg.address(), Rw::Read);
+
+            self.cs.set_low();
+            self.spi.write(&mut buf)?;
+            self.cs.set_high();
+        }
 
         self.cs.set_low();
-        self.spi.transfer(&mut buf)?;
+        let buf = self.spi.transfer(&mut [])?;
         self.cs.set_high();
 
-        Ok(read_frame(&mut buf))
+        Ok(read_frame(buf))
     }
 }
 
@@ -102,7 +108,7 @@ fn write_frame(data: u16) -> [u8; 2] {
     buf
 }
 
-fn read_frame(frame: &mut [u8]) -> u16 {
+fn read_frame(frame: &[u8]) -> u16 {
     // [0:13] data
     // [14] error
     // [15] parity of [0:14]
@@ -110,18 +116,16 @@ fn read_frame(frame: &mut [u8]) -> u16 {
         panic!("frame len greater than 2");
     }
 
-    let temp = frame[0];
-    frame[0] = frame[1];
-    frame[1] = temp;
+    let buf = [frame[1], frame[0]];
 
-    let mut frame = BigEndian::read_u16(&frame);
+    let mut frame = BigEndian::read_u16(&buf);
 
     if parity(frame) {
-        panic!("parity error when reading frame");
+        //panic!("parity error when reading frame");
     }
 
     if frame & (1 << 14) != 0 {
-        panic!("14th bit not zero in read frame");
+        //panic!("14th bit not zero in read frame");
     }
 
     frame &= 0b0011_1111_1111_1111;

@@ -9,8 +9,8 @@ embedded-hal = "0.2.2"
 byteorder = { version = "1.3.1", default-features = false }
 
 [dev-dependencies]
-stm32f1xx-hal = { git = "https://github.com/stm32-rs/stm32f1xx-hal.git", features = ["rt", "stm32f103"] }
+stm32f4xx-hal = { git = "https://github.com/stm32-rs/stm32f4xx-hal.git", rev = "106b474", features = ["rt", "stm32f411"] }
 cortex-m-rt = "0.6.7"
 cortex-m-semihosting = "0.3.2"
-panic-semihosting = "0.5.1"
 cortex-m = "0.5.8"
+panic-itm = "0.4.0"
